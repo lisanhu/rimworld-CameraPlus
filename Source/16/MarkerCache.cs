@@ -25,9 +25,16 @@ namespace CameraPlus
 			var dotConfig = pawn.GetDotConfig();
 			var outlineFactor = dotConfig?.outlineFactor ?? Settings.outlineFactor;
 
+			var silhouetteTex = GetTexture(pawn);
+			if (silhouetteTex == null)
+			{
+				// If no silhouette texture is available, return null
+				return null;
+			}
+
 			var silhouette = MaterialAllocator.Create(Assets.BorderedShader);
 			silhouette.name = $"{pawn.ThingID}-silhouette";
-			silhouette.SetTexture("_MainTex", GetTexture(pawn));
+			silhouette.SetTexture("_MainTex", silhouetteTex);
 			silhouette.SetFloat("_OutlineFactor", outlineFactor);
 			silhouette.renderQueue = (int)RenderQueue.Overlay;
 
@@ -86,13 +93,20 @@ namespace CameraPlus
 		// TODO maybe make a reverse patch?
 		static void UpdateSilhouetteCache(Pawn pawn)
 		{
+			// var renderer = pawn.Drawer.renderer;
+			// var graphic = pawn.RaceProps.Humanlike
+			// 	? pawn.ageTracker.CurLifeStage.silhouetteGraphicData.Graphic
+			// 	: (pawn.ageTracker.CurKindLifeStage.silhouetteGraphicData == null
+			// 		? renderer.BodyGraphic
+			// 		: pawn.ageTracker.CurKindLifeStage.silhouetteGraphicData.Graphic
+			// 		);
+			// var bodyPos = renderer.GetBodyPos(pawn.DrawPos, PawnPosture.Standing, out _);
+			// renderer.SetSilhouetteData(graphic, bodyPos);
 			var renderer = pawn.Drawer.renderer;
-			var graphic = pawn.RaceProps.Humanlike
-				? pawn.ageTracker.CurLifeStage.silhouetteGraphicData.Graphic
-				: (pawn.ageTracker.CurKindLifeStage.silhouetteGraphicData == null
-					? renderer.BodyGraphic
-					: pawn.ageTracker.CurKindLifeStage.silhouetteGraphicData.Graphic
-					);
+			// Try to get the body node from the render tree for the most reliable graphic
+			renderer.renderTree.nodesByTag.TryGetValue(PawnRenderNodeTagDefOf.Body, out var bodyNode);
+			var graphic = bodyNode?.primaryGraphic;
+
 			var bodyPos = renderer.GetBodyPos(pawn.DrawPos, PawnPosture.Standing, out _);
 			renderer.SetSilhouetteData(graphic, bodyPos);
 		}
@@ -107,7 +121,7 @@ namespace CameraPlus
 			}
 
 			Tools.DefaultMarkerTextures(pawn, out var inner, out _);
-			return inner;
+			return null;
 		}
 	}
 }

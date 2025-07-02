@@ -93,6 +93,7 @@ namespace CameraPlus
 					case DotStyle.BetterSilhouettes:
 						materialMarker = materials.silhouette;
 						materialMarker.SetColor("_FillColor", innerColor);
+						// materialMarker.SetColor("_FillColor", Color.clear);
 						materialMarker.SetColor("_OutlineColor", outerColor);
 						DrawMarker(pawn, dotConfig, materialMarker);
 						break;
@@ -184,7 +185,8 @@ namespace CameraPlus
 			_ = pawn.Drawer.renderer.renderTree.nodesByTag.TryGetValue(PawnRenderNodeTagDefOf.Body, out var bodyNode);
 			var isAnimal = pawn.RaceProps.Animal && pawn.Name != null;
 			var miscPlayer = isAnimal == false && pawn.Faction == Faction.OfPlayer && pawn.IsColonistPlayerControlled == false;
-			var size = miscPlayer ? 1.5f * Vector2.one : pawn.Graphic?.drawSize ?? pawn.DrawSize; // Use pawn.Graphic directly since bodyNode.Graphic is no longer accessible
+			var graphic = bodyNode?.primaryGraphic;
+			var size = miscPlayer ? 1.5f * Vector2.one : graphic?.drawSize ?? pawn.DrawSize;
 			var relativeSize = Settings.dotRelativeSize * (dotConfig?.relativeSize ?? 1f);
 			var matrixMarker = Matrix4x4.TRS(posMarker, q, Vector3.one * Mathf.Pow((size.x + size.y) / 2, 1 / markerSizeScaler) * markerScale * relativeSize);
 			var mesh = pawn.Rotation == Rot4.West ? meshWest : meshEast;
